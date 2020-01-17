@@ -14,9 +14,7 @@ header = "      Math 371\n"\
 def gauss_siedel_iteration(tol, max_iters, a, b, separation=1):
     """Employs the Gauss-Siedel method of iteration to find solutions
     to linear systems."""
-    # Since this will probably only be fed two equations, this just checks
-    # if the system is diagonally dominant or not, and adjusts to make it so.
-    # This helps to ensure Gauss-Siedel converges.
+    # swaps equations 1 and 2 if matrix a is not diagonally dominant
     if a[1][0] > a[0][0]:
         a.reverse()
         b.reverse()
