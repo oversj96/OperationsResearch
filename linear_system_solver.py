@@ -4,9 +4,6 @@
 __author__    = "Justin Overstreet"
 __copyright__ = "oversj96.github.io"
 
-from sympy import symbols, sympify, Eq, solve
-x, y = symbols("x y")
-
 import numpy as np
 
 # Used a global string for the header so that I wouldn't need 
