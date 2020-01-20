@@ -1,4 +1,4 @@
-"""linear_system_solver.py: A python script that will accept a number of unknown variables and a number of equations and 
+"""linear_system_solver_gauss_siedel.py: A python script that will accept a number of unknown variables and a number of equations and 
 solve the system."""
 
 __author__    = "Justin Overstreet"
