@@ -35,13 +35,29 @@ def get_system():
       bm = list(map(int, bm))
       return am, bm
 
+def check_validity(a, b):
+    if a[0] == 0 and a[1] == 0 and b[0] != 0:
+        print(f"Error in equation one: 0 != {b[0]}")
+        return False
+    elif a[2] == 0 and a[3] == 0 and b[1] != 0:
+        print(f"Error in equation two: 0 != {b[1]}")
+        return False
+    else:
+        return True
 
 def solve_with_matrices(a, b):
       """Solves the system by using numpy to transform data into matrices
       Matrix operations are programmed here and the solution is not obtained with
       np.solve(). Proof of concept."""
+      # Make sure the equations make sense
+      if not check_validity(a, b):
+        return None
       # Check for parallel lines
       if is_multiple(a[0], a[2]) and is_multiple(a[1], a[3]):
+          if is_multiple(b[0], b[1]):
+            print("Infinitely many solutions. Line equations are scalar multiples of each other. ")
+            return None
+          else:
             print("The system has no solutions: lines are parallel")
             return None        
       # Structure the coefficient data into a coefficient matrix
@@ -61,7 +77,7 @@ def solve_with_matrices(a, b):
       solutions = inverse_matrix * b_matrix
       # Display the solution data and calculate if the solutions generated truly do
       # achieve the same results as the data in the b matrix.
-      print(f"x = {solutions[0,0]:.3f}, y = {solutions[1,0]:.3f}")
+      print(f"\nx = {solutions[0,0]:.3f}, y = {solutions[1,0]:.3f}\n")
       print(f"{a[0,0]:.3f}*{solutions[0,0]:.3f} + {a[0,1]:.3f}*{solutions[1,0]:.3f} = "\
             f" {a[0,0]*solutions[0,0] + a[0,1]*solutions[1,0]:.3f}")
       print(f"{a[1,0]:.3f}*{solutions[0,0]:.3f} + {a[1,1]:.3f}*{solutions[1,0]:.3f} = "\
