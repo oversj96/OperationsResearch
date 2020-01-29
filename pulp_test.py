@@ -4,13 +4,13 @@ from pulp import *
 import pandas as pd
 
 # Define the problem
-prob = LpProblem("Diet Optimization", LpMaximize)
+prob = LpProblem("Diet_Optimization", LpMaximize)
 
 # Define the data set to be used
 # IMPORTANT 
 # You could theoretically import the entire sonic list to an excel sheet 
 # with the specified columns and none of code would need changed.
-df = pd.read_excel("nutrition_info.xlsx", nrows=11)
+df = pd.read_excel("nutrition_info.xlsx", nrows=365)
 
 # Create a list of all the food items in the excel sheet
 food_items = list(df['Food Items'])
@@ -18,6 +18,7 @@ food_items = list(df['Food Items'])
 # Create dictionaries for each of the nutrition categories by name
 # Could probably have been simplified with a for loop and iterating over
 # food_items, but then we wouldn't have nicely named variables.
+column_names = df.head()
 calories = dict(zip(food_items, df['Calories']))
 calories_from_fat = dict(zip(food_items, df['Calories from Fat']))
 fat = dict(zip(food_items, df['Fat (g)']))
@@ -57,7 +58,7 @@ prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) <= 27, "TransFa
 prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) <= 250, "CholesterolMaximum"
 
 # Sodium
-prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) <= 4000, "SodiumMinimum"
+prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) <= 3000, "SodiumMinimum"
 
 # Carbs
 prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) >= 130, "CarbsMinimum"
@@ -73,20 +74,47 @@ prob += lpSum([item_count[f] * food_vars[f] for f in food_items]) == 4, "ItemCou
 
 prob.solve()
 
-print(f"Status: {LpStatus[prob.status]}")
+print(f"Status: {LpStatus[prob.status]}\n")
 
-total_val_fiber = 0
-total_var_calories = 0
+total_fiber = 0
+total_calories = 0
+total_calories_from_fat = 0
+total_fat = 0
+total_saturated_fat = 0
+total_trans_fat = 0
+total_cholesterol = 0
+total_sodium = 0
+total_carbs = 0
+total_sugar = 0
+total_protein = 0
 
 for v in prob.variables():
     if v.varValue > 0:
-        print(f"{v.name} = {v.varValue}")
-        total_val_fiber += (v.varValue * dietary_fiber[v.name.replace('_', ' ')[5:]])
-        total_var_calories += (v.varValue * calories[v.name.replace('_', ' ')[5:]])
+        print(f"{v.name.replace('_', ' ')[5:]} = {int(v.varValue)}")
+        total_fiber += (v.varValue * dietary_fiber[v.name.replace('_', ' ')[5:]])
+        total_calories += (v.varValue * calories[v.name.replace('_', ' ')[5:]])
+        total_calories_from_fat += (v.varValue * calories_from_fat[v.name.replace('_', ' ')[5:]])
+        total_fat += (v.varValue * fat[v.name.replace('_', ' ')[5:]])
+        total_saturated_fat += (v.varValue * saturated_fat[v.name.replace('_', ' ')[5:]])
+        total_trans_fat += (v.varValue * trans_fat[v.name.replace('_', ' ')[5:]])
+        total_cholesterol += (v.varValue * cholesterol[v.name.replace('_', ' ')[5:]])
+        total_sodium += (v.varValue * sodium[v.name.replace('_', ' ')[5:]])
+        total_carbs += (v.varValue * carbs[v.name.replace('_', ' ')[5:]])
+        total_sugar += (v.varValue * sugar[v.name.replace('_', ' ')[5:]])
+        total_protein += (v.varValue * protein[v.name.replace('_', ' ')[5:]])
     elif v.varValue < 0:
         print("Error: value less than 0. Cannot have negative food quantities.")
-
 if LpStatus[prob.status] == "Optimal":
-    print(f"Maximized dietary fiber amount: {total_val_fiber} (g)")
-    print(f"Calorie Intake: {total_var_calories}")
-
+    print(f"\nMaximized dietary fiber amount: {total_fiber} (g)\n")
+    print(f"Other Nutrient Values:")
+    print(f"Calories: {total_calories} kCal")
+    print(f"Calories from Fat: {total_calories_from_fat} kCal")
+    print(f"Fat: {total_fat} (g)")
+    print(f"Saturated Fat: {total_saturated_fat} (g)")
+    print(f"Trans Fat: {total_trans_fat} (g)")
+    print(f"Cholesterol: {total_cholesterol} (mg)")
+    print(f"Sodium: {total_sodium} (mg)")
+    print(f"Carbs: {total_carbs} (g)")
+    print(f"Sugar: {total_sugar} (g)")
+    print(f"Protein: {total_protein} (g)")
+    
