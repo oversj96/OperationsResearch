@@ -5,7 +5,7 @@ import pandas as pd
 prob = LpProblem("Diet Optimization", LpMaximize)
 
 # Define the data set to be used
-df = pd.read_excel("nutrition_info.xlsx", nrows=11)
+df = pd.read_excel("nutrition_info.xlsx", nrows=12)
 
 # Create a list of all the food items in the excel sheet
 food_items = list(df['Food Items'])
@@ -24,39 +24,65 @@ carbs = dict(zip(food_items, df['Carbs (g)']))
 dietary_fiber = dict(zip(food_items, df['Dietary Fiber (g)']))
 sugar = dict(zip(food_items, df['Sugar (g)']))
 protein = dict(zip(food_items, df['Protein (g)']))
+item_count = dict(zip(food_items, df['Item Count']))
 
 # Define the scope of the optimization solution, i.e. the variables will be nonnegative
 # in this case.
-food_vars = LpVariable.dicts("Food", food_items, lowBound=0, cat='Continuous')
+food_vars = LpVariable.dicts("Food", food_items, lowBound=0, cat=LpInteger)
 
 # The objective function: dietary_fiber was selected for maximization.
 prob += lpSum([dietary_fiber[i]*food_vars[i] for i in food_items])
 
-prob += lpSum([calories[f] * food_vars[f] for f in food_items]) >= 0, "CalorieMinimum"
+# Calories
+prob += lpSum([calories[f] * food_vars[f] for f in food_items]) >= 2000, "CalorieMinimum"
 #prob += lpSum([calories[f] * food_vars[f] for f in food_items]) <= 4000, "CalorieMaximum"
-prob += lpSum([calories_from_fat[f] * food_vars[f] for f in food_items]) >= 0, "CaloriesFromFatMinimum"
+
+# Calories from fat
+prob += lpSum([calories_from_fat[f] * food_vars[f] for f in food_items]) >= 585, "CaloriesFromFatMinimum"
 #prob += lpSum([calories_from_fat[f] * food_vars[f] for f in food_items]) <= 1500, "CaloriesFromFatMaximum"
-prob += lpSum([fat[f] * food_vars[f] for f in food_items]) >= 0, "FatMinimum"
+
+# Fat
+prob += lpSum([fat[f] * food_vars[f] for f in food_items]) >= 64.5, "FatMinimum"
 #prob += lpSum([fat[f] * food_vars[f] for f in food_items]) <= 110, "FatMaximum"
+
+# Saturated fat
 #prob += lpSum([saturated_fat[f] * food_vars[f] for f in food_items]) >= 0, "SaturatedFatMinimum"
-prob += lpSum([saturated_fat[f] * food_vars[f] for f in food_items]) <= 400, "SaturatedFatMaximum"
+prob += lpSum([saturated_fat[f] * food_vars[f] for f in food_items]) <= 27, "SaturatedFatMaximum"
+
+# Trans fat
 #prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) >= 0, "TransFatMinimum"
-prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) <= 200, "TransFatMaximum"
+prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) <= 27, "TransFatMaximum"
+
+# Cholesterol
 #prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) >= 0, "CholesterolMinimum"
-prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) <= 1000, "CholesterolMaximum"
+prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) <= 250, "CholesterolMaximum"
+
+# Sodium
 #prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) >= 0, "SodiumMinimum"
-prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) <= 10000, "SodiumMaximum"
-prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) >= 0, "CarbsMinimum"
+prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) >= 1000, "SodiumMinimum"
+
+# Carbs
+prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) >= 130, "CarbsMinimum"
 #prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) <= 300, "CarbsMaximum"
+
+# Sugar
 #prob += lpSum([sugar[f] * food_vars[f] for f in food_items]) >= 0, "SugarMinimum"
-prob += lpSum([sugar[f] * food_vars[f] for f in food_items]) <= 500, "SugarMaximum"
-prob += lpSum([protein[f] * food_vars[f] for f in food_items]) >= 0, "ProteinMinimum"
-#prob += lpSum([protein[f] * food_vars[f] for f in food_items]) <= 120, "ProteinMaximum"
-print(prob)
+prob += lpSum([sugar[f] * food_vars[f] for f in food_items]) <= 50, "SugarMaximum"
+
+# Protein
+prob += lpSum([protein[f] * food_vars[f] for f in food_items]) >= 56, "ProteinMinimum"
+
+# Item Count
+prob += lpSum([item_count[f] * food_vars[f] for f in food_items]) == 4, "ItemCountEquals"
 
 prob.solve()
 
 print(f"Status: {LpStatus[prob.status]}")
 
+for v in prob.variables():
+    if v.varValue > 0:
+        print(f"{v.name} = {v.varValue}")
+    elif v.varValue < 0:
+        print("Error: value less than 0. Cannot have negative food quantities.")
 
 
