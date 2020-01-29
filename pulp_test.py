@@ -5,6 +5,9 @@ import pandas as pd
 prob = LpProblem("Diet Optimization", LpMaximize)
 
 # Define the data set to be used
+# IMPORTANT 
+# You could theoretically import the entire sonic list to an excel sheet 
+# with the specified columns and none of code would need changed.
 df = pd.read_excel("nutrition_info.xlsx", nrows=11)
 
 # Create a list of all the food items in the excel sheet
