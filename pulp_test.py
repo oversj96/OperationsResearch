@@ -1,3 +1,5 @@
+__author__ = "Justin Overstreet"
+
 from pulp import *
 import pandas as pd
 
@@ -55,7 +57,7 @@ prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) <= 27, "TransFa
 prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) <= 250, "CholesterolMaximum"
 
 # Sodium
-prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) >= 1000, "SodiumMinimum"
+prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) <= 4000, "SodiumMinimum"
 
 # Carbs
 prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) >= 130, "CarbsMinimum"
@@ -73,15 +75,18 @@ prob.solve()
 
 print(f"Status: {LpStatus[prob.status]}")
 
-total_val = 0
+total_val_fiber = 0
+total_var_calories = 0
 
 for v in prob.variables():
     if v.varValue > 0:
         print(f"{v.name} = {v.varValue}")
-        total_val += (v.varValue * dietary_fiber[v.name.replace('_', ' ')[5:]])
+        total_val_fiber += (v.varValue * dietary_fiber[v.name.replace('_', ' ')[5:]])
+        total_var_calories += (v.varValue * calories[v.name.replace('_', ' ')[5:]])
     elif v.varValue < 0:
         print("Error: value less than 0. Cannot have negative food quantities.")
 
 if LpStatus[prob.status] == "Optimal":
-    print(f"Maximized dietary fiber amount: {total_val} (g)")
+    print(f"Maximized dietary fiber amount: {total_val_fiber} (g)")
+    print(f"Calorie Intake: {total_var_calories}")
 
