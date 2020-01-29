@@ -5,7 +5,7 @@ import pandas as pd
 prob = LpProblem("Diet Optimization", LpMaximize)
 
 # Define the data set to be used
-df = pd.read_excel("nutrition_info.xlsx", nrows=12)
+df = pd.read_excel("nutrition_info.xlsx", nrows=11)
 
 # Create a list of all the food items in the excel sheet
 food_items = list(df['Food Items'])
@@ -35,38 +35,29 @@ prob += lpSum([dietary_fiber[i]*food_vars[i] for i in food_items])
 
 # Calories
 prob += lpSum([calories[f] * food_vars[f] for f in food_items]) >= 2000, "CalorieMinimum"
-#prob += lpSum([calories[f] * food_vars[f] for f in food_items]) <= 4000, "CalorieMaximum"
 
 # Calories from fat
 prob += lpSum([calories_from_fat[f] * food_vars[f] for f in food_items]) >= 585, "CaloriesFromFatMinimum"
-#prob += lpSum([calories_from_fat[f] * food_vars[f] for f in food_items]) <= 1500, "CaloriesFromFatMaximum"
 
 # Fat
 prob += lpSum([fat[f] * food_vars[f] for f in food_items]) >= 64.5, "FatMinimum"
-#prob += lpSum([fat[f] * food_vars[f] for f in food_items]) <= 110, "FatMaximum"
 
 # Saturated fat
-#prob += lpSum([saturated_fat[f] * food_vars[f] for f in food_items]) >= 0, "SaturatedFatMinimum"
 prob += lpSum([saturated_fat[f] * food_vars[f] for f in food_items]) <= 27, "SaturatedFatMaximum"
 
 # Trans fat
-#prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) >= 0, "TransFatMinimum"
 prob += lpSum([trans_fat[f] * food_vars[f] for f in food_items]) <= 27, "TransFatMaximum"
 
 # Cholesterol
-#prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) >= 0, "CholesterolMinimum"
 prob += lpSum([cholesterol[f] * food_vars[f] for f in food_items]) <= 250, "CholesterolMaximum"
 
 # Sodium
-#prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) >= 0, "SodiumMinimum"
 prob += lpSum([sodium[f] * food_vars[f] for f in food_items]) >= 1000, "SodiumMinimum"
 
 # Carbs
 prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) >= 130, "CarbsMinimum"
-#prob += lpSum([carbs[f] * food_vars[f] for f in food_items]) <= 300, "CarbsMaximum"
 
 # Sugar
-#prob += lpSum([sugar[f] * food_vars[f] for f in food_items]) >= 0, "SugarMinimum"
 prob += lpSum([sugar[f] * food_vars[f] for f in food_items]) <= 50, "SugarMaximum"
 
 # Protein
@@ -79,10 +70,15 @@ prob.solve()
 
 print(f"Status: {LpStatus[prob.status]}")
 
+total_val = 0
+
 for v in prob.variables():
     if v.varValue > 0:
         print(f"{v.name} = {v.varValue}")
+        total_val += (v.varValue * dietary_fiber[v.name.replace('_', ' ')[5:]])
     elif v.varValue < 0:
         print("Error: value less than 0. Cannot have negative food quantities.")
 
+if LpStatus[prob.status] == "Optimal":
+    print(f"Maximized dietary fiber amount: {total_val} (g)")
 
